@@ -18,6 +18,10 @@ svg{flex-shrink:0}
 .banner-lurus{position:relative;border:1px solid #333;border-radius:16px;overflow:hidden;height:200px;background:#111;cursor:pointer}
 .banner-lurus video{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1) contrast(1.05) brightness(.95);position:absolute;inset:0;z-index:1}
 .banner-lurus img.poster{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1);position:absolute;inset:0;z-index:0}
+/* FIX BANNER: Kalau video gagal, foto jadi gerak kayak video */
+.banner-lurus.foto-mode video{display:none}
+.banner-lurus.foto-mode img.poster{animation:gerakVideo 12s ease-in-out infinite alternate}
+@keyframes gerakVideo{0%{transform:scale(1)}100%{transform:scale(1.18) translateX(-8px) translateY(4px)}}
 .banner-badge{position:absolute;top:10px;right:10px;z-index:3;background:#fff;color:#000;font-size:10px;font-weight:900;letter-spacing:.1em;padding:6px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
 .play-hint{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2;background:rgba(0,0,0,.35)}
 .play-hint span{background:#fff;color:#000;font-size:11px;font-weight:900;padding:8px 14px;border-radius:20px}
@@ -67,12 +71,14 @@ svg{flex-shrink:0}
 .nav{position:fixed;bottom:0;left:0;right:0;background:#000;border-top:1px solid #333;display:flex;padding:10px;gap:8px;z-index:50}
 .install-bar{display:none;background:#fff;color:#000;margin:14px 14px 0;border-radius:12px;padding:12px;border:1px solid #000}
 .install-bar b{font-size:14px}.install-bar p{font-size:12px;color:#555}
+.notif-hint{font-size:11px;color:#666;margin-top:8px;line-height:1.5}
+.notif-hint.denied{color:#d00;font-weight:700}
 </style>
 </head>
 <body>
 
 <div class="banner-wrap">
-  <div class="banner-lurus" onclick="playVideo()">
+  <div class="banner-lurus" id="bannerBox" onclick="playVideo()">
     <img class="poster" src="icon5.jpg" alt="DELZ">
     <video id="bannerVideo" src="animasi3.mp4" autoplay muted loop playsinline preload="auto" poster="icon5.jpg"></video>
     <div class="play-hint" id="playHint"><span>KLIK UNTUK PLAY</span></div>
@@ -119,8 +125,8 @@ svg{flex-shrink:0}
         <div><b>Notifikasi Sholat</b><br><span id="notifStatus">Belum diizinkan</span></div>
         <div class="onoff" id="notifToggle" onclick="toggleNotif()"><i></i></div>
       </div>
-      <p style="font-size:11px;color:#666;margin-top:8px;line-height:1.5">Notifikasi cuma muncul di atas (status bar). Tanpa suara, tanpa geter, tanpa ganggu. Service Worker cuma bangun pas waktunya doang, terus tidur lagi.</p>
-      <button class="btn" onclick="mintaIzin()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg> IZINKAN NOTIFIKASI</button>
+      <p id="notifHint" class="notif-hint">Notifikasi cuma muncul di atas (status bar). Tanpa suara, tanpa geter, tanpa ganggu.</p>
+      <button class="btn" id="btnMintaIzin" onclick="mintaIzin()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg> IZINKAN NOTIFIKASI</button>
       <button class="btn ghost" onclick="testPopup()">TES POPUP "HY DELZ"</button>
       <button class="btn ghost" onclick="testNotif()">TES NOTIFIKASI ATAS</button>
     </div>
@@ -167,8 +173,24 @@ function playVideo(){
 }
 document.addEventListener('DOMContentLoaded', ()=>{
   let v=document.getElementById('bannerVideo');
-  if(v){ v.muted=true; v.play().then(()=>{document.getElementById('playHint').style.display='none'}).catch(()=>{document.getElementById('playHint').style.display='flex'});
-    v.addEventListener('error', ()=>{ document.getElementById('videoInfo').innerText='Video animasi3.mp4 gak ketemu! Cek nama file harus persis: animasi3.mp4 - sekarang nampilin icon5.jpg'; document.getElementById('videoInfo').style.color='#fff'; });
+  let banner=document.getElementById('bannerBox');
+  if(v){
+    v.muted=true;
+    v.play().then(()=>{document.getElementById('playHint').style.display='none'}).catch(()=>{document.getElementById('playHint').style.display='flex'});
+    function jadiFotoMode(msg){
+      if(!banner) return;
+      banner.classList.add('foto-mode');
+      let info=document.getElementById('videoInfo');
+      if(info){ info.innerText=msg || 'Banner: icon5.jpg (animasi foto)'; info.style.color='#fff'; }
+      let hint=document.getElementById('playHint'); if(hint) hint.style.display='none';
+    }
+    v.addEventListener('error', ()=>{ jadiFotoMode('Banner: icon5.jpg (animasi foto) - animasi3.mp4 gak kebaca, soalnya isinya JPG'); });
+    // Kalau 3 detik video masih gak jalan, anggap gagal, ganti ke foto gerak
+    setTimeout(()=>{
+      if(v.readyState===0 || (v.paused && v.currentTime===0)){
+        jadiFotoMode('Banner: icon5.jpg (animasi foto)');
+      }
+    }, 3000);
     document.addEventListener('touchstart', playVideo, {once:true});
   }
 });
@@ -176,7 +198,7 @@ let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('installBar').style.display='block'; });
 document.getElementById('installBtn')?.addEventListener('click', async ()=>{
   if(deferredPrompt){ deferredPrompt.prompt(); let c=await deferredPrompt.userChoice; if(c.outcome==='accepted'){ document.getElementById('installBar').style.display='none'; } deferredPrompt=null; }
-  else { alert('Di HP lu, pencet titik 3 di Chrome > Tambahkan ke Layar Utama / Install App'); }
+  else { document.getElementById('installBar').style.display='none'; }
 });
 let jadwal={Subuh:"04:35",Dzuhur:"11:47",Ashar:"15:08",Maghrib:"17:55",Isya:"19:07"};
 let aktif=JSON.parse(localStorage.getItem('delz_sholat_aktif')||'{"Subuh":true,"Dzuhur":true,"Ashar":true,"Maghrib":true,"Isya":true}');
@@ -208,18 +230,13 @@ function setTab(t){
   document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran();
 }
 async function loadAllSurah(){
-  // 1. quran.js lokal dulu - JALAN DI ACODE + OFFLINE
   if(window.QURAN_DATA && window.QURAN_DATA.data){
     ALL_SURAH=window.QURAN_DATA.data;
     document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Dari quran.js (Offline)';
     renderQuran();
-    // Kalau online, tetep coba update dari API biar detail lengkap
-    try{ let r=await fetch('https://api.alquran.cloud/v1/surah'); let j=await r.json(); if(j.data){ /* data lokal udah lengkap, gak perlu timpa */ } }catch(e){}
     return;
   }
-  // 2. Free API AlQuran Cloud
   try{ let r=await fetch('https://api.alquran.cloud/v1/surah'); let j=await r.json(); if(j.data){ ALL_SURAH=j.data.map(s=>({nomor:s.number,namaLatin:s.englishName,nama:s.name,arti:s.englishNameTranslation,jumlahAyat:s.numberOfAyahs,tempatTurun:s.revelationType==='Meccan'?'Makkiyah':'Madaniyah'})); document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Free API AlQuran Cloud'; renderQuran(); return; } }catch(e){}
-  // 3. Free API Equran
   try{ let r=await fetch('https://equran.nurfajr.com/api/v1/surat'); let j=await r.json(); ALL_SURAH=j.data; document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Free API Equran'; renderQuran(); return; }catch(e){ document.getElementById('quranInfo').innerText='Gagal load Quran. Cek quran.js / internet'; }
 }
 function renderQuran(){
@@ -240,13 +257,11 @@ async function bukaSurah(nomor, fromAyat, toAyat, judulCustom){
   let listBox=document.getElementById('quranList'); let detailBox=document.getElementById('quranDetail');
   listBox.style.display='none'; detailBox.style.display='block';
   detailBox.innerHTML='<div class="quran-card"><div class="skeleton big"></div><div class="skeleton"></div><div class="skeleton"></div><p style="font-size:12px;color:#666">Memuat surah lengkap...</p></div>';
-  // 1. quran.js lokal
   if(window.QURAN_DATA && window.QURAN_DATA.detail && window.QURAN_DATA.detail[String(nomor)]){
     let s=window.QURAN_DATA.detail[String(nomor)]; let ayatList=s.ayat;
     if(fromAyat && toAyat) ayatList=ayatList.filter(a=>a.nomorAyat>=fromAyat && a.nomorAyat<=toAyat);
     tampilkanSurah({namaLatin:s.namaLatin,nama:s.nama,arti:s.arti,jumlahAyat:s.jumlahAyat,tempatTurun:s.tempatTurun,ayat:ayatList}, judulCustom); return;
   }
-  // 2. AlQuran Cloud Free API - FULL
   try{
     let r=await fetch('https://api.alquran.cloud/v1/surah/'+nomor+'/editions/quran-uthmani,en.transliteration,id.indonesian');
     let j=await r.json();
@@ -257,7 +272,6 @@ async function bukaSurah(nomor, fromAyat, toAyat, judulCustom){
       tampilkanSurah({namaLatin:arab.englishName,nama:arab.name,arti:arab.englishNameTranslation,jumlahAyat:arab.numberOfAyahs,tempatTurun:arab.revelationType,ayat:ayatList}, judulCustom); return;
     }
   }catch(e){}
-  // 3. Equran Free API
   try{ let r=await fetch('https://equran.nurfajr.com/api/v1/surat/'+nomor); let j=await r.json(); let s=j.data; let ayatList=s.ayat; if(fromAyat && toAyat) ayatList=ayatList.filter(a=>a.nomorAyat>=fromAyat && a.nomorAyat<=toAyat); tampilkanSurah(s, judulCustom); return; }catch(e){ detailBox.innerHTML='<div class="quran-card"><p>Gagal load. Cek internet / quran.js.</p><button class="btn ghost" onclick="kembaliList()">KEMBALI</button><button class="btn ghost" onclick="bukaSurah('+nomor+')">COBA LAGI</button></div>'; }
 }
 function tampilkanSurah(s, judulCustom){
@@ -266,29 +280,55 @@ function tampilkanSurah(s, judulCustom){
   detailBox.scrollIntoView({behavior:'smooth'});
 }
 function kembaliList(){ document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran(); }
-function salinSemua(){ let t=[...document.querySelectorAll('#quranDetail .latin')].map(e=>e.innerText).join('\n\n'); navigator.clipboard.writeText(t).then(()=>alert('Udah kesalin semua latin-nya!')); }
+function salinSemua(){ let t=[...document.querySelectorAll('#quranDetail .latin')].map(e=>e.innerText).join('\n\n'); navigator.clipboard.writeText(t).then(()=>{ let b=document.getElementById('notifHint'); if(b){ b.innerText='Udah kesalin semua latin-nya!'; } }); }
 function filterQuran(){ document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran(); }
 function kirimKeSW(){ if('serviceWorker' in navigator && navigator.serviceWorker.controller){ navigator.serviceWorker.controller.postMessage({type:'UPDATE_JADWAL', jadwal:jadwal, aktif:aktif, notifOn:notifOn}); } }
+
+// === NOTIF BARU - TANPA ALERT SAMA SEKALI ===
 function updateNotifUI(){
-  let t=document.getElementById('notifToggle'); let badge=document.getElementById('notifBadge'); let st=document.getElementById('notifStatus');
-  if(notifOn && Notification.permission==='granted'){ t.classList.add('on'); badge.innerText='NOTIF ON'; st.innerText='Aktif - notif muncul di atas walau web gak kebuka'; }
-  else { t.classList.remove('on'); badge.innerText='NOTIF OFF'; st.innerText = Notification.permission==='denied' ? 'Diblokir - buka Setting Chrome > Notifications > Allow' : 'Nonaktif - pencet IZINKAN + nyalain toggle'; }
+  let t=document.getElementById('notifToggle'); let badge=document.getElementById('notifBadge'); let st=document.getElementById('notifStatus'); let hint=document.getElementById('notifHint'); let btn=document.getElementById('btnMintaIzin');
+  if(!t || !badge || !st) return;
+  if(notifOn && 'Notification' in window && Notification.permission==='granted'){
+    t.classList.add('on'); badge.innerText='NOTIF ON'; st.innerText='Aktif - notif muncul di atas walau web gak kebuka';
+    if(hint){ hint.innerText='Notifikasi cuma muncul di atas (status bar). Tanpa suara, tanpa geter, tanpa ganggu.'; hint.classList.remove('denied'); }
+    if(btn) btn.style.display='none';
+  } else {
+    t.classList.remove('on'); badge.innerText='NOTIF OFF';
+    if('Notification' in window && Notification.permission==='denied'){
+      st.innerText='Diblokir';
+      if(hint){ hint.innerText='Diblokir sama Chrome. Pencet gembok di address bar atas > Site Settings > Notifications > Allow, terus refresh halaman ini.'; hint.classList.add('denied'); }
+      if(btn) btn.style.display='none';
+    } else {
+      st.innerText='Belum diizinkan';
+      if(hint){ hint.innerText='Notifikasi cuma muncul di atas (status bar). Tanpa suara, tanpa geter, tanpa ganggu.'; hint.classList.remove('denied'); }
+      if(btn) btn.style.display='flex';
+    }
+  }
   kirimKeSW();
 }
 function toggleNotif(){
-  if(!('Notification' in window)){ alert('INI MASIH DI PREVIEW ACODE! Buka di Chrome dulu.'); return; }
-  if(Notification.permission!=='granted'){ alert('Pencet IZINKAN NOTIFIKASI dulu!'); return; }
+  if(!('Notification' in window)){ return; }
+  if(Notification.permission!=='granted'){ mintaIzin(); return; }
   notifOn=!notifOn; localStorage.setItem('delz_notif_on',notifOn?'1':'0'); updateNotifUI();
 }
 async function mintaIzin(){
-  if(!('Notification' in window)){ alert('INI MASIH DI PREVIEW ACODE! Buka di Chrome dulu.'); return; }
-  if(!window.isSecureContext){ alert('Harus pake HTTPS! Upload dulu ke GitHub Pages.'); return; }
+  if(!('Notification' in window)){ return; }
+  if(!window.isSecureContext){ return; }
   let p=await Notification.requestPermission();
-  if(p==='granted'){ notifOn=true; localStorage.setItem('delz_notif_on','1'); alert('MANTAP! Notif udah ON. Cuma muncul di atas, tanpa suara / geter.'); new Notification('hy delz, shalat yuk?',{body:'Notif udah jalan! Nanti muncul pas waktunya.', icon:'icon5.jpg', silent:true}); }
-  else alert('Notif ditolak. Buka Setting Chrome > Notifications > Allow.');
+  if(p==='granted'){
+    notifOn=true; localStorage.setItem('delz_notif_on','1');
+    try{ new Notification('hy delz, shalat yuk?',{body:'Notif udah jalan! Nanti muncul pas waktunya.', icon:'icon5.jpg', silent:true}); }catch(e){}
+  } else {
+    notifOn=false; localStorage.setItem('delz_notif_on','0');
+    // DITOLAK = DIEM AJA, JANGAN ALERT. CUMA UPDATE UI.
+  }
   updateNotifUI();
 }
-function testNotif(){ if(Notification.permission!=='granted'){ alert('Izinin dulu!'); return; } new Notification('hy delz, shalat yuk?',{body:'Ini contoh notif atas - tanpa suara, tanpa geter.', icon:'icon5.jpg', silent:true, vibrate:[]}); }
+function testNotif(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission!=='granted'){ mintaIzin(); return; }
+  try{ new Notification('hy delz, shalat yuk?',{body:'Ini contoh notif atas - tanpa suara, tanpa geter.', icon:'icon5.jpg', silent:true, vibrate:[]}); }catch(e){}
+}
 function testPopup(){ document.getElementById('alarmTitle').innerHTML='hy delz,<br>shalat yuk?'; document.getElementById('alarmSub').innerText='Ini contoh popup-nya.'; document.getElementById('alarmBox').style.display='flex'; }
 function tutupAlarm(){ document.getElementById('alarmBox').style.display='none'; }
 function tundaAlarm(){ tundaSampai=Date.now()+5*60*1000; tutupAlarm(); }
@@ -316,7 +356,7 @@ function cek(){
     urutan.forEach(n=>{
       if(aktif[n] && keMenit(jadwal[n])===menitNow){
         let key=n+'-'+now.getDate();
-        if(!sudahMuncul[key]){ sudahMuncul[key]=true; document.getElementById('alarmTitle').innerHTML='hy delz,<br>shalat yuk?'; document.getElementById('alarmSub').innerText='Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB.'; document.getElementById('alarmBox').style.display='flex'; if(notifOn && Notification.permission==='granted'){ new Notification('hy delz, shalat yuk?',{body:'Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB. Sholat dulu ya!', tag:'sholat-'+n, icon:'icon5.jpg', silent:true, vibrate:[]}); } }
+        if(!sudahMuncul[key]){ sudahMuncul[key]=true; document.getElementById('alarmTitle').innerHTML='hy delz,<br>shalat yuk?'; document.getElementById('alarmSub').innerText='Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB.'; document.getElementById('alarmBox').style.display='flex'; if(notifOn && Notification.permission==='granted'){ try{ new Notification('hy delz, shalat yuk?',{body:'Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB. Sholat dulu ya!', tag:'sholat-'+n, icon:'icon5.jpg', silent:true, vibrate:[]}); }catch(e){} } }
       }
     });
   }
@@ -325,4 +365,4 @@ if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').then
 loadJadwal(); setInterval(cek,1000);
 </script>
 </body>
-  </html>
+        </html>
