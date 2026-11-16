@@ -1,1 +1,328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DELZ - Pengingat Sholat & Quran Mini</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon5.jpg">
+<link rel="apple-touch-icon" href="icon5.jpg">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif;padding:0;padding-bottom:100px;overflow-x:hidden}
+svg{flex-shrink:0}
+.banner-wrap{padding:14px 14px 0}
+.banner-lurus{position:relative;border:1px solid #333;border-radius:16px;overflow:hidden;height:200px;background:#111;cursor:pointer}
+.banner-lurus video{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1) contrast(1.05) brightness(.95);position:absolute;inset:0;z-index:1}
+.banner-lurus img.poster{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1);position:absolute;inset:0;z-index:0}
+.banner-badge{position:absolute;top:10px;right:10px;z-index:3;background:#fff;color:#000;font-size:10px;font-weight:900;letter-spacing:.1em;padding:6px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.play-hint{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:2;background:rgba(0,0,0,.35)}
+.play-hint span{background:#fff;color:#000;font-size:11px;font-weight:900;padding:8px 14px;border-radius:20px}
+.btn{width:100%;background:#fff;color:#000;border:1px solid #000;padding:13px;border-radius:12px;font-weight:900;font-size:14px;cursor:pointer;margin-top:12px;transition:transform .12s,box-shadow .12s;box-shadow:4px 4px 0 #333;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:translate(2px,2px) scale(.97);box-shadow:1px 1px 0 #333;background:#e5e5e5}
+.btn.ghost{background:#fff;color:#000;border:1px solid #000;box-shadow:4px 4px 0 #333}
+.btn.ghost:active{transform:translate(2px,2px) scale(.97);box-shadow:1px 1px 0 #333}
+.btn::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transition:left .4s}
+.btn:active::after{left:120%}
+.btn.small{padding:10px;font-size:13px}
+.btn.tab{flex:1;margin:0;padding:11px 6px;font-size:12px;background:#111;color:#aaa;box-shadow:none;border:1px solid #333}
+.btn.tab.on{background:#fff;color:#000;border-color:#fff}
+.card{background:#fff;color:#111;border:1px solid #000;border-radius:16px;padding:16px;margin:18px 14px 0;box-shadow:0 4px 0 #333;transition:transform .18s,box-shadow .18s;cursor:pointer}
+.card:active,.card:hover{transform:scale(.985);box-shadow:0 2px 0 #333}
+.row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #ddd;border-radius:12px;padding:12px;margin-top:10px;transition:transform .15s,background .15s}
+.row:active{transform:scale(.98);background:#f2f2f2}
+.row b{font-size:17px;color:#111}.row span{font-size:12px;color:#666;display:block;margin-top:2px}
+.time{font-size:20px;font-weight:900;color:#111}
+.icon-box{width:38px;height:38px;border:1px solid #111;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#111;color:#fff;flex-shrink:0}
+.skeleton{height:20px;border-radius:8px;margin:10px 0;background:linear-gradient(90deg,#eee 25%,#fff 50%,#eee 75%);background-size:200% 100%;animation:shimmer 1.2s infinite linear}
+.skeleton.big{height:42px}.skeleton.small{height:14px;width:60%}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes popIn{0%{transform:scale(.95);opacity:0}100%{transform:scale(1);opacity:1}}
+.pop{animation:popIn .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fadeUp{animation:fadeUp .3s ease}
+.top{text-align:center;padding:16px 14px 0}
+.top small{color:#888;letter-spacing:.15em;font-size:11px;font-weight:700}
+.top h1{font-size:30px;line-height:1.1;margin:8px 0 4px;color:#fff}
+.top p{color:#888;font-size:13px}
+.onoff{width:52px;height:28px;border-radius:20px;background:#ddd;position:relative;cursor:pointer;flex-shrink:0;border:1px solid #111;transition:background .2s}
+.onoff i{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border:1px solid #111;border-radius:50%;transition:.2s}
+.onoff.on{background:#111}.onoff.on i{left:26px;background:#fff}.onoff:active{transform:scale(.9)}
+.badge{display:inline-block;background:#111;color:#fff;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:900;margin-left:6px}
+.setting{display:flex;justify-content:space-between;align-items:center;padding:12px 6px}
+.setting b{font-size:15px;color:#111}.setting span{font-size:11px;color:#666}
+.small{font-size:11px;color:#666;text-align:center;margin:12px 14px;line-height:1.6}
+.quran-card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:14px;margin-top:12px}
+.quran-card h3{font-size:17px;color:#111;display:flex;align-items:center;gap:8px}
+.quran-card .arab{font-size:24px;line-height:2;text-align:right;margin:10px 0;direction:rtl;font-family:serif;color:#111}
+.quran-card .latin{font-size:13px;line-height:1.7;color:#222;background:#f2f2f2;padding:10px;border-radius:10px;white-space:pre-wrap}
+.quran-card .arti{font-size:12px;color:#666;margin-top:8px;line-height:1.6}
+.ayat-num{font-size:11px;font-weight:900;background:#111;color:#fff;padding:3px 8px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.search{width:100%;background:#fff;border:1px solid #111;color:#111;padding:12px;border-radius:12px;margin-top:10px;font-size:14px;outline:none}
+#alarmBox{display:none;position:fixed;inset:0;background:#000;z-index:99;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+#alarmBox h1{font-size:36px;color:#fff;line-height:1.2;margin:14px 0 6px}#alarmBox p{color:#888;font-size:14px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#000;border-top:1px solid #333;display:flex;padding:10px;gap:8px;z-index:50}
+.install-bar{display:none;background:#fff;color:#000;margin:14px 14px 0;border-radius:12px;padding:12px;border:1px solid #000}
+.install-bar b{font-size:14px}.install-bar p{font-size:12px;color:#555}
+</style>
+</head>
+<body>
 
+<div class="banner-wrap">
+  <div class="banner-lurus" onclick="playVideo()">
+    <img class="poster" src="icon5.jpg" alt="DELZ">
+    <video id="bannerVideo" src="animasi3.mp4" autoplay muted loop playsinline preload="auto" poster="icon5.jpg"></video>
+    <div class="play-hint" id="playHint"><span>KLIK UNTUK PLAY</span></div>
+    <div class="banner-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> DELZ • JABAR</div>
+  </div>
+  <p id="videoInfo" style="font-size:10px;color:#666;text-align:center;margin-top:6px">Video: animasi3.mp4 • Icon: icon5.jpg</p>
+</div>
+
+<div class="top">
+<small>DELZ • JABAR</small>
+<h1>Pengingat Sholat<br>+ Quran Mini</h1>
+<p id="dateLine">Memuat tanggal...</p>
+<p id="locLine">Cikijing, Majalengka - Jabar • Metode Kemenag RI</p>
+</div>
+
+<div class="install-bar" id="installBar">
+  <b>Install jadi Aplikasi?</b>
+  <p>Biar notif muncul walau web gak kebuka. Cuma notif atas, tanpa suara, tanpa geter.</p>
+  <button class="btn" id="installBtn" style="margin-top:10px">INSTALL PWA DELZ</button>
+  <button class="btn ghost" onclick="document.getElementById('installBar').style.display='none'" style="margin-top:8px">NANTI AJA</button>
+</div>
+
+<div id="loadingBox">
+  <div class="card"><div class="skeleton big"></div><div class="skeleton small"></div></div>
+  <div class="card"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+</div>
+
+<div id="mainBox" style="display:none">
+  <div id="pageSholat">
+    <div class="card pop" style="text-align:center">
+      <small style="font-weight:900;letter-spacing:.12em">MENJELANG <span id="notifBadge" class="badge">NOTIF OFF</span></small>
+      <h2 id="nextName" style="font-size:36px;margin:6px 0 2px">-</h2>
+      <div id="countdown" style="font-size:44px;font-weight:900">--:--:--</div>
+      <p id="nextTime" style="color:#666;font-size:12px;margin-top:4px">-</p>
+    </div>
+    <div class="card pop">
+      <h3 style="font-size:20px;font-weight:900;display:flex;align-items:center;gap:8px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg> SEMUA JADWAL</h3>
+      <p style="font-size:12px;color:#666;margin:4px 0 6px">Semua jadwal sholat, dalam satu list.</p>
+      <p style="font-size:11px;color:#888">5 WAKTU / GRATIS • FREE API</p>
+      <div id="list"></div>
+    </div>
+    <div class="card pop">
+      <div class="setting">
+        <div><b>Notifikasi Sholat</b><br><span id="notifStatus">Belum diizinkan</span></div>
+        <div class="onoff" id="notifToggle" onclick="toggleNotif()"><i></i></div>
+      </div>
+      <p style="font-size:11px;color:#666;margin-top:8px;line-height:1.5">Notifikasi cuma muncul di atas (status bar). Tanpa suara, tanpa geter, tanpa ganggu. Service Worker cuma bangun pas waktunya doang, terus tidur lagi.</p>
+      <button class="btn" onclick="mintaIzin()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg> IZINKAN NOTIFIKASI</button>
+      <button class="btn ghost" onclick="testPopup()">TES POPUP "HY DELZ"</button>
+      <button class="btn ghost" onclick="testNotif()">TES NOTIFIKASI ATAS</button>
+    </div>
+  </div>
+  <div id="pageQuran" style="display:none">
+    <div class="card pop">
+      <h2 style="font-size:22px;font-weight:900;display:flex;align-items:center;gap:8px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Quran Mini - LENGKAP</h2>
+      <p style="color:#666;font-size:12px;margin-top:4px">114 Surah • Ayat Kursi • Yasin • Full Arab + Latin + Arti • Free API + quran.js offline</p>
+      <input class="search" id="cariQuran" placeholder="Cari: Yasin, Kursi, Ikhlas, Falaq, Al-Baqarah..." oninput="filterQuran()">
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn tab on" id="tabPendek" onclick="setTab('pendek')">Surah Pendek</button>
+        <button class="btn tab" id="tabSemua" onclick="setTab('semua')">114 Surah</button>
+        <button class="btn tab" id="tabKursi" onclick="setTab('kursi')">Ayat Kursi</button>
+        <button class="btn tab" id="tabYasin" onclick="setTab('yasin')">Yasin Full</button>
+      </div>
+      <p id="quranInfo" style="font-size:11px;color:#888;margin-top:10px">Memuat Quran lengkap...</p>
+      <div id="quranList"></div>
+      <div id="quranDetail" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<p class="small">Notifikasi cuma di atas, tanpa suara, tanpa geter, tanpa ganggu.<br>Jadwal dari Aladhan API (Free). Quran dari Equran + AlQuran Cloud (Free) + quran.js.<br>DELZ • JABAR</p>
+
+<div class="nav">
+  <button class="btn tab on" id="navSholat" onclick="showPage('sholat')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg> Sholat</button>
+  <button class="btn tab" id="navQuran" onclick="showPage('quran')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Quran Mini</button>
+</div>
+
+<div id="alarmBox">
+  <img src="icon5.jpg" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #fff">
+  <h1 id="alarmTitle">hy delz,<br>shalat yuk?</h1>
+  <p id="alarmSub">Sudah masuk waktu sholat</p>
+  <button class="btn" onclick="tutupAlarm()" style="max-width:300px">OK GAS, GUA SHOLAT DULU</button>
+  <button class="btn ghost" onclick="tundaAlarm()" style="max-width:300px">TUNDA 5 MENIT</button>
+</div>
+
+<script src="quran.js"></script>
+<script>
+function playVideo(){
+  let v=document.getElementById('bannerVideo');
+  if(!v) return; v.muted=true;
+  v.play().then(()=>{document.getElementById('playHint').style.display='none'}).catch(()=>{document.getElementById('playHint').style.display='flex'});
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  let v=document.getElementById('bannerVideo');
+  if(v){ v.muted=true; v.play().then(()=>{document.getElementById('playHint').style.display='none'}).catch(()=>{document.getElementById('playHint').style.display='flex'});
+    v.addEventListener('error', ()=>{ document.getElementById('videoInfo').innerText='Video animasi3.mp4 gak ketemu! Cek nama file harus persis: animasi3.mp4 - sekarang nampilin icon5.jpg'; document.getElementById('videoInfo').style.color='#fff'; });
+    document.addEventListener('touchstart', playVideo, {once:true});
+  }
+});
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt=e; document.getElementById('installBar').style.display='block'; });
+document.getElementById('installBtn')?.addEventListener('click', async ()=>{
+  if(deferredPrompt){ deferredPrompt.prompt(); let c=await deferredPrompt.userChoice; if(c.outcome==='accepted'){ document.getElementById('installBar').style.display='none'; } deferredPrompt=null; }
+  else { alert('Di HP lu, pencet titik 3 di Chrome > Tambahkan ke Layar Utama / Install App'); }
+});
+let jadwal={Subuh:"04:35",Dzuhur:"11:47",Ashar:"15:08",Maghrib:"17:55",Isya:"19:07"};
+let aktif=JSON.parse(localStorage.getItem('delz_sholat_aktif')||'{"Subuh":true,"Dzuhur":true,"Ashar":true,"Maghrib":true,"Isya":true}');
+let notifOn=localStorage.getItem('delz_notif_on')==='1';
+let sudahMuncul={}; let tundaSampai=0; let tabQuran='pendek'; let ALL_SURAH=[];
+function keMenit(j){let p=j.split(':');return parseInt(p[0])*60+parseInt(p[1])}
+function iconSVG(kode){
+  let paths={'SB':'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/>','DZ':'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/>','AS':'<path d="M12 3v2M12 19v2M3 12h2M19 12h2"/><circle cx="12" cy="12" r="4"/>','MG':'<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>','IS':'<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'};
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">${paths[kode]||''}</svg>`;
+}
+function render(){
+  let html=''; let urutan=['Subuh','Dzuhur','Ashar','Maghrib','Isya'];
+  let kode={Subuh:'SB',Dzuhur:'DZ',Ashar:'AS',Maghrib:'MG',Isya:'IS'};
+  let desc={Subuh:'Bangun, waktunya Subuh',Dzuhur:'Istirahat, waktunya Dzuhur',Ashar:'Sore, waktunya Ashar',Maghrib:'Buka / Maghrib',Isya:'Malam, waktunya Isya'};
+  urutan.forEach(n=>{ html+=`<div class="row"><div style="display:flex;gap:10px;align-items:center"><div class="icon-box">${iconSVG(kode[n])}</div><div><b>${n}</b><span>${desc[n]}</span></div></div><div style="display:flex;align-items:center;gap:10px"><div class="time">${jadwal[n]}</div><div class="onoff ${aktif[n]?'on':''}" onclick="toggle('${n}',this)"><i></i></div></div></div>`; });
+  document.getElementById('list').innerHTML=html;
+}
+function toggle(n,el){aktif[n]=!aktif[n];localStorage.setItem('delz_sholat_aktif',JSON.stringify(aktif));el.classList.toggle('on'); kirimKeSW();}
+function showPage(p){
+  document.getElementById('pageSholat').style.display=p==='sholat'?'block':'none';
+  document.getElementById('pageQuran').style.display=p==='quran'?'block':'none';
+  document.getElementById('navSholat').classList.toggle('on',p==='sholat');
+  document.getElementById('navQuran').classList.toggle('on',p==='quran');
+  if(p==='quran') renderQuran();
+}
+function setTab(t){
+  tabQuran=t;
+  ['pendek','semua','kursi','yasin'].forEach(x=>{ let el=document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1)); if(el) el.classList.toggle('on',x===t); });
+  document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran();
+}
+async function loadAllSurah(){
+  // 1. quran.js lokal dulu - JALAN DI ACODE + OFFLINE
+  if(window.QURAN_DATA && window.QURAN_DATA.data){
+    ALL_SURAH=window.QURAN_DATA.data;
+    document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Dari quran.js (Offline)';
+    renderQuran();
+    // Kalau online, tetep coba update dari API biar detail lengkap
+    try{ let r=await fetch('https://api.alquran.cloud/v1/surah'); let j=await r.json(); if(j.data){ /* data lokal udah lengkap, gak perlu timpa */ } }catch(e){}
+    return;
+  }
+  // 2. Free API AlQuran Cloud
+  try{ let r=await fetch('https://api.alquran.cloud/v1/surah'); let j=await r.json(); if(j.data){ ALL_SURAH=j.data.map(s=>({nomor:s.number,namaLatin:s.englishName,nama:s.name,arti:s.englishNameTranslation,jumlahAyat:s.numberOfAyahs,tempatTurun:s.revelationType==='Meccan'?'Makkiyah':'Madaniyah'})); document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Free API AlQuran Cloud'; renderQuran(); return; } }catch(e){}
+  // 3. Free API Equran
+  try{ let r=await fetch('https://equran.nurfajr.com/api/v1/surat'); let j=await r.json(); ALL_SURAH=j.data; document.getElementById('quranInfo').innerText='Lengkap: '+ALL_SURAH.length+' surah • Free API Equran'; renderQuran(); return; }catch(e){ document.getElementById('quranInfo').innerText='Gagal load Quran. Cek quran.js / internet'; }
+}
+function renderQuran(){
+  let q=(document.getElementById('cariQuran').value||'').toLowerCase();
+  let listBox=document.getElementById('quranList');
+  if(tabQuran==='kursi'){ listBox.innerHTML=''; bukaSurah(2,255,255,'Ayat Kursi - Al-Baqarah 255'); return; }
+  if(tabQuran==='yasin'){ bukaSurah(36,1,83,'Yasin - Surah ke 36 - FULL 83 AYAT'); return; }
+  if(ALL_SURAH.length===0){ listBox.innerHTML='<div class="quran-card"><div class="skeleton"></div><div class="skeleton"></div></div>'; return; }
+  let filtered=ALL_SURAH.filter(s=>{
+    let match=(s.namaLatin||'').toLowerCase().includes(q)||(s.arti||'').toLowerCase().includes(q)||String(s.nomor).includes(q);
+    if(tabQuran==='pendek'){ let pn=[1,36,55,56,67,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114]; return match && pn.includes(s.nomor); }
+    return match;
+  });
+  if(filtered.length===0){ listBox.innerHTML='<p style="color:#666;font-size:13px;margin-top:12px">Gak ketemu, coba kata lain.</p>'; return; }
+  listBox.innerHTML=filtered.map(s=>`<div class="quran-card fadeUp" onclick="bukaSurah(${s.nomor})"><h3><span style="background:#111;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px">${s.nomor}</span> ${s.namaLatin} • ${s.nama}</h3><p style="font-size:12px;color:#666;margin-top:6px">${s.tempatTurun} • ${s.jumlahAyat} Ayat • Arti: ${s.arti}</p><p style="font-size:12px;color:#111;margin-top:8px;font-weight:700">Klik untuk baca FULL ${s.jumlahAyat} ayat - Arab + Latin + Arti</p><button class="btn ghost small">BUKA SURAH LENGKAP</button></div>`).join('');
+}
+async function bukaSurah(nomor, fromAyat, toAyat, judulCustom){
+  let listBox=document.getElementById('quranList'); let detailBox=document.getElementById('quranDetail');
+  listBox.style.display='none'; detailBox.style.display='block';
+  detailBox.innerHTML='<div class="quran-card"><div class="skeleton big"></div><div class="skeleton"></div><div class="skeleton"></div><p style="font-size:12px;color:#666">Memuat surah lengkap...</p></div>';
+  // 1. quran.js lokal
+  if(window.QURAN_DATA && window.QURAN_DATA.detail && window.QURAN_DATA.detail[String(nomor)]){
+    let s=window.QURAN_DATA.detail[String(nomor)]; let ayatList=s.ayat;
+    if(fromAyat && toAyat) ayatList=ayatList.filter(a=>a.nomorAyat>=fromAyat && a.nomorAyat<=toAyat);
+    tampilkanSurah({namaLatin:s.namaLatin,nama:s.nama,arti:s.arti,jumlahAyat:s.jumlahAyat,tempatTurun:s.tempatTurun,ayat:ayatList}, judulCustom); return;
+  }
+  // 2. AlQuran Cloud Free API - FULL
+  try{
+    let r=await fetch('https://api.alquran.cloud/v1/surah/'+nomor+'/editions/quran-uthmani,en.transliteration,id.indonesian');
+    let j=await r.json();
+    if(j.data && j.data[0]){
+      let arab=j.data[0], latin=j.data[1], indo=j.data[2];
+      let ayatList=arab.ayahs.map((a,i)=>({nomorAyat:a.numberInSurah,teksArab:a.text,teksLatin:latin.ayahs[i]?.text||'',teksIndonesia:indo.ayahs[i]?.text||''}));
+      if(fromAyat && toAyat) ayatList=ayatList.filter(a=>a.nomorAyat>=fromAyat && a.nomorAyat<=toAyat);
+      tampilkanSurah({namaLatin:arab.englishName,nama:arab.name,arti:arab.englishNameTranslation,jumlahAyat:arab.numberOfAyahs,tempatTurun:arab.revelationType,ayat:ayatList}, judulCustom); return;
+    }
+  }catch(e){}
+  // 3. Equran Free API
+  try{ let r=await fetch('https://equran.nurfajr.com/api/v1/surat/'+nomor); let j=await r.json(); let s=j.data; let ayatList=s.ayat; if(fromAyat && toAyat) ayatList=ayatList.filter(a=>a.nomorAyat>=fromAyat && a.nomorAyat<=toAyat); tampilkanSurah(s, judulCustom); return; }catch(e){ detailBox.innerHTML='<div class="quran-card"><p>Gagal load. Cek internet / quran.js.</p><button class="btn ghost" onclick="kembaliList()">KEMBALI</button><button class="btn ghost" onclick="bukaSurah('+nomor+')">COBA LAGI</button></div>'; }
+}
+function tampilkanSurah(s, judulCustom){
+  let detailBox=document.getElementById('quranDetail');
+  detailBox.innerHTML=`<div class="quran-card fadeUp"><button class="btn ghost small" onclick="kembaliList()">← KEMBALI KE DAFTAR</button><h3 style="margin-top:12px">${judulCustom || (s.namaLatin+' • '+s.nama)}</h3><p style="font-size:12px;color:#666;margin-top:6px">${s.tempatTurun} • ${s.jumlahAyat} Ayat • Arti: ${s.arti}</p><p style="font-size:11px;color:#888;margin-top:8px">Total ayat: ${s.ayat.length} ayat - LENGKAP</p><button class="btn ghost small" onclick="salinSemua()">SALIN SEMUA LATIN</button></div>${s.ayat.map(a=>`<div class="quran-card fadeUp"><span class="ayat-num">Ayat ${a.nomorAyat}</span><div class="arab">${a.teksArab}</div><div><b style="font-size:12px">LATIN:</b></div><div class="latin">${a.teksLatin}</div><div class="arti"><b>ARTI:</b> ${a.teksIndonesia}</div></div>`).join('')}<div class="quran-card"><button class="btn ghost" onclick="kembaliList()">← KEMBALI KE DAFTAR</button></div>`;
+  detailBox.scrollIntoView({behavior:'smooth'});
+}
+function kembaliList(){ document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran(); }
+function salinSemua(){ let t=[...document.querySelectorAll('#quranDetail .latin')].map(e=>e.innerText).join('\n\n'); navigator.clipboard.writeText(t).then(()=>alert('Udah kesalin semua latin-nya!')); }
+function filterQuran(){ document.getElementById('quranDetail').style.display='none'; document.getElementById('quranList').style.display='block'; renderQuran(); }
+function kirimKeSW(){ if('serviceWorker' in navigator && navigator.serviceWorker.controller){ navigator.serviceWorker.controller.postMessage({type:'UPDATE_JADWAL', jadwal:jadwal, aktif:aktif, notifOn:notifOn}); } }
+function updateNotifUI(){
+  let t=document.getElementById('notifToggle'); let badge=document.getElementById('notifBadge'); let st=document.getElementById('notifStatus');
+  if(notifOn && Notification.permission==='granted'){ t.classList.add('on'); badge.innerText='NOTIF ON'; st.innerText='Aktif - notif muncul di atas walau web gak kebuka'; }
+  else { t.classList.remove('on'); badge.innerText='NOTIF OFF'; st.innerText = Notification.permission==='denied' ? 'Diblokir - buka Setting Chrome > Notifications > Allow' : 'Nonaktif - pencet IZINKAN + nyalain toggle'; }
+  kirimKeSW();
+}
+function toggleNotif(){
+  if(!('Notification' in window)){ alert('INI MASIH DI PREVIEW ACODE! Buka di Chrome dulu.'); return; }
+  if(Notification.permission!=='granted'){ alert('Pencet IZINKAN NOTIFIKASI dulu!'); return; }
+  notifOn=!notifOn; localStorage.setItem('delz_notif_on',notifOn?'1':'0'); updateNotifUI();
+}
+async function mintaIzin(){
+  if(!('Notification' in window)){ alert('INI MASIH DI PREVIEW ACODE! Buka di Chrome dulu.'); return; }
+  if(!window.isSecureContext){ alert('Harus pake HTTPS! Upload dulu ke GitHub Pages.'); return; }
+  let p=await Notification.requestPermission();
+  if(p==='granted'){ notifOn=true; localStorage.setItem('delz_notif_on','1'); alert('MANTAP! Notif udah ON. Cuma muncul di atas, tanpa suara / geter.'); new Notification('hy delz, shalat yuk?',{body:'Notif udah jalan! Nanti muncul pas waktunya.', icon:'icon5.jpg', silent:true}); }
+  else alert('Notif ditolak. Buka Setting Chrome > Notifications > Allow.');
+  updateNotifUI();
+}
+function testNotif(){ if(Notification.permission!=='granted'){ alert('Izinin dulu!'); return; } new Notification('hy delz, shalat yuk?',{body:'Ini contoh notif atas - tanpa suara, tanpa geter.', icon:'icon5.jpg', silent:true, vibrate:[]}); }
+function testPopup(){ document.getElementById('alarmTitle').innerHTML='hy delz,<br>shalat yuk?'; document.getElementById('alarmSub').innerText='Ini contoh popup-nya.'; document.getElementById('alarmBox').style.display='flex'; }
+function tutupAlarm(){ document.getElementById('alarmBox').style.display='none'; }
+function tundaAlarm(){ tundaSampai=Date.now()+5*60*1000; tutupAlarm(); }
+async function loadJadwal(){
+  document.getElementById('dateLine').innerText=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  try{
+    let t=new Date(); let d=`${String(t.getDate()).padStart(2,'0')}-${String(t.getMonth()+1).padStart(2,'0')}-${t.getFullYear()}`;
+    let r=await fetch(`https://api.aladhan.com/v1/timings/${d}?latitude=-6.898&longitude=108.333&method=20`);
+    let j=await r.json(); let tim=j.data.timings;
+    jadwal={Subuh:tim.Fajr.slice(0,5),Dzuhur:tim.Dhuhr.slice(0,5),Ashar:tim.Asr.slice(0,5),Maghrib:tim.Maghrib.slice(0,5),Isya:tim.Isha.slice(0,5)};
+    document.getElementById('locLine').innerText='Cikijing, Majalengka - Jabar • Jadwal Hari Ini (Online - Free API)';
+  }catch(e){ document.getElementById('locLine').innerText='Cikijing - Jabar • Mode Offline (Jadwal Cadangan)'; }
+  document.getElementById('loadingBox').style.display='none'; document.getElementById('mainBox').style.display='block';
+  render(); updateNotifUI(); loadAllSurah();
+}
+function cek(){
+  let now=new Date(); let menitNow=now.getHours()*60+now.getMinutes(); let detikNow=now.getSeconds();
+  let urutan=['Subuh','Dzuhur','Ashar','Maghrib','Isya']; let next=null; let selisih=99999;
+  urutan.forEach(n=>{ let m=keMenit(jadwal[n]); let diff=m-menitNow; if(diff<0) diff+=1440; if(diff<selisih){selisih=diff; next=n;} });
+  let totalDetik=selisih*60-detikNow; let jam=Math.floor(totalDetik/3600); let men=Math.floor((totalDetik%3600)/60); let det=totalDetik%60;
+  let el=document.getElementById('nextName'); if(!el) return;
+  el.innerText=next; document.getElementById('nextTime').innerText='Jam '+jadwal[next]+' WIB • Pengingat: '+(aktif[next]?'AKTIF':'NONAKTIF');
+  document.getElementById('countdown').innerText=`${String(jam).padStart(2,'0')}:${String(men).padStart(2,'0')}:${String(det).padStart(2,'0')}`;
+  if(Date.now()>tundaSampai){
+    urutan.forEach(n=>{
+      if(aktif[n] && keMenit(jadwal[n])===menitNow){
+        let key=n+'-'+now.getDate();
+        if(!sudahMuncul[key]){ sudahMuncul[key]=true; document.getElementById('alarmTitle').innerHTML='hy delz,<br>shalat yuk?'; document.getElementById('alarmSub').innerText='Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB.'; document.getElementById('alarmBox').style.display='flex'; if(notifOn && Notification.permission==='granted'){ new Notification('hy delz, shalat yuk?',{body:'Sudah masuk waktu '+n+' - '+jadwal[n]+' WIB. Sholat dulu ya!', tag:'sholat-'+n, icon:'icon5.jpg', silent:true, vibrate:[]}); } }
+      }
+    });
+  }
+}
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').then(()=>{ kirimKeSW(); }).catch(()=>{}); }
+loadJadwal(); setInterval(cek,1000);
+</script>
+</body>
+  </html>
