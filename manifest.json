@@ -1,0 +1,17 @@
+{
+  "name": "DELZ Pengingat Sholat & Quran Mini",
+  "short_name": "DELZ Sholat",
+  "description": "Pengingat sholat Jabar + Quran Mini lengkap. Notif cuma di atas, tanpa suara, tanpa geter.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "education", "utilities"],
+  "icons": [
+    {"src": "icon5.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any"},
+    {"src": "icon5.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any"},
+    {"src": "icon5.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable"}
+  ]
+}
